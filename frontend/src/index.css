@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* v4 커스텀 색상 정의 방식 */
+@theme {
+  --color-primary: #464BAA;
+  --color-primary-light: #7B8FE0;
+  --color-primary-dark: #3B3F90;
+}
+
+body {
+  margin: 0;
+  background-color: #f3f4f6;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+  box-sizing: border-box;
+}
