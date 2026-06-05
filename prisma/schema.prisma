@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum LostItemStatus {
+  REGISTERED
+  MATCH_REQUESTED
+  MATCHING
+  DELIVERED
+}
+
+enum FoundItemStatus {
+  REGISTERED
+  MATCHING
+  DELIVERED
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  DELIVERED
+}
+
+enum KeywordOwnerType {
+  LOST
+  FOUND
+}
+
+enum ReviewType {
+  POSITIVE
+  NEGATIVE
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  studentId    String   @unique @map("student_id")
+  username     String   @unique
+  password     String
+  temperature  Float    @default(36.5)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  lostItems    LostItem[]
+  foundItems   FoundItem[]
+  sentMessages Message[]
+  activities   Activity[]
+
+  writtenReviews  Review[] @relation("WrittenReviews")
+  receivedReviews Review[] @relation("ReceivedReviews")
+
+  requestedMatches Match[] @relation("Requester")
+  receivedMatches  Match[] @relation("Receiver")
+
+  @@map("users")
+}
+
+model LostItem {
+  id           Int            @id @default(autoincrement())
+  ownerId      Int            @map("owner_id")
+  title        String
+  description  String?
+  imageUrl     String?        @map("image_url")
+  lostLocation String         @map("lost_location")
+  lostTime     DateTime       @map("lost_time")
+  status       LostItemStatus @default(REGISTERED)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  owner        User           @relation(fields: [ownerId], references: [id])
+  matches      Match[]
+
+  @@map("lost_items")
+}
+
+model FoundItem {
+  id             Int             @id @default(autoincrement())
+  ownerId        Int             @map("owner_id")
+  imageUrl       String          @map("image_url")
+  description    String?
+  foundLocation  String          @map("found_location")
+  foundTime      DateTime        @map("found_time")
+  status         FoundItemStatus @default(REGISTERED)
+  aiStatus       String          @default("PENDING") @map("ai_status")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  owner          User            @relation(fields: [ownerId], references: [id])
+  matches        Match[]
+
+  @@map("found_items")
+}
+
+model ItemKeyword {
+  id        Int              @id @default(autoincrement())
+  ownerType KeywordOwnerType @map("owner_type")
+  ownerId   Int              @map("owner_id")
+  keyword   String
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@map("item_keywords")
+}
+
+model Match {
+  id          Int         @id @default(autoincrement())
+  lostItemId  Int         @map("lost_item_id")
+  foundItemId Int         @map("found_item_id")
+  requesterId Int         @map("requester_id")
+  receiverId  Int         @map("receiver_id")
+  status      MatchStatus @default(PENDING)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  lostItem    LostItem    @relation(fields: [lostItemId], references: [id])
+  foundItem   FoundItem   @relation(fields: [foundItemId], references: [id])
+  requester   User        @relation("Requester", fields: [requesterId], references: [id])
+  receiver    User        @relation("Receiver", fields: [receiverId], references: [id])
+
+  chatRoom    ChatRoom?
+  reviews     Review[]
+
+  @@map("matches")
+}
+
+model ChatRoom {
+  id        Int      @id @default(autoincrement())
+  matchId   Int      @unique @map("match_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  match     Match    @relation(fields: [matchId], references: [id])
+  messages  Message[]
+
+  @@map("chat_rooms")
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  chatRoomId Int      @map("chat_room_id")
+  senderId   Int      @map("sender_id")
+  message    String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  sender     User     @relation(fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+model Activity {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  activityType String   @map("activity_type")
+  description  String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("activities")
+}
+
+model Review {
+  id           Int        @id @default(autoincrement())
+  matchId      Int        @map("match_id")
+  writerId     Int        @map("writer_id")
+  targetUserId Int        @map("target_user_id")
+  reviewType   ReviewType @map("review_type")
+  content      String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  match        Match      @relation(fields: [matchId], references: [id])
+  writer       User       @relation("WrittenReviews", fields: [writerId], references: [id])
+  targetUser   User       @relation("ReceivedReviews", fields: [targetUserId], references: [id])
+
+  @@unique([matchId, writerId])
+  @@map("reviews")
+}
