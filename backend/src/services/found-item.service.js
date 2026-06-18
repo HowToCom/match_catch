@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const AppError = require("../utils/AppError");
+const aiService = require("./ai.service");
 
 async function createFoundItem(userId, data, file) {
   const { description, found_location, found_time, keywords } = data;
@@ -16,15 +17,40 @@ async function createFoundItem(userId, data, file) {
     }
   }
 
+  let aiStatus = parsedKeywords.length > 0 ? "SUCCESS" : "PENDING";
+  let finalDescription = description;
+
+  if (parsedKeywords.length === 0) {
+    try {
+      const analysis = await aiService.analyzeImageFile(
+        file.path,
+        file.mimetype
+      );
+
+      parsedKeywords = [
+        ...analysis.general_keywords,
+        ...analysis.unique_keywords,
+      ];
+
+      if (!finalDescription && analysis.description) {
+        finalDescription = analysis.description;
+      }
+
+      aiStatus = parsedKeywords.length > 0 ? "SUCCESS" : "FAILED";
+    } catch (err) {
+      aiStatus = "FAILED";
+    }
+  }
+
   const foundItem = await prisma.foundItem.create({
     data: {
       ownerId: userId,
       imageUrl,
-      description,
+      description: finalDescription,
       foundLocation: found_location,
       foundTime: new Date(found_time),
       status: "REGISTERED",
-      aiStatus: parsedKeywords.length > 0 ? "SUCCESS" : "PENDING",
+      aiStatus,
     },
     select: {
       id: true,
