@@ -7,6 +7,7 @@ const lostItemRoutes = require("./lost-item.routes");
 const matchRoutes = require("./match.routes");
 const chatRoutes = require("./chat.routes");
 const reviewRoutes = require("./review.routes");
+const aiRoutes = require("./ai.routes");
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use("/lost-items", lostItemRoutes);
 router.use("/matches", matchRoutes);
 router.use("/chat-rooms", chatRoutes);
 router.use("/reviews", reviewRoutes);
+router.use("/ai", aiRoutes);
 
 module.exports = router;
