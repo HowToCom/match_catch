@@ -29,6 +29,25 @@ async function createFoundItem(req, res, next) {
   }
 }
 
+async function updateFoundItem(req, res, next) {
+  try {
+    const result = await foundItemService.updateFoundItem(
+      req.user.id,
+      req.params.found_item_id,
+      req.body,
+      req.file
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "습득물 수정에 성공했습니다.",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getFoundItems(req, res, next) {
   try {
     const result = await foundItemService.getFoundItems();
@@ -61,6 +80,7 @@ async function getFoundItemById(req, res, next) {
 
 module.exports = {
   createFoundItem,
+  updateFoundItem,
   getFoundItems,
   getFoundItemById,
 };

@@ -331,6 +331,75 @@ async function acceptMatchRequest(userId, matchId) {
     updated_at: result.updatedMatch.updatedAt,
   };
 }
+async function rejectMatchRequest(userId, matchId) {
+  const match = await prisma.match.findUnique({
+    where: {
+      id: Number(matchId),
+    },
+    include: {
+      lostItem: true,
+      foundItem: true,
+    },
+  });
+
+  if (!match) {
+    throw new AppError("존재하지 않는 매칭입니다.", 404);
+  }
+
+  if (match.receiverId !== userId) {
+    throw new AppError("매칭 요청을 받은 사용자만 거절할 수 있습니다.", 403);
+  }
+
+  if (match.status !== "PENDING") {
+    throw new AppError("거절할 수 없는 매칭 상태입니다.", 409);
+  }
+
+  if (match.lostItem.status !== "MATCH_REQUESTED") {
+    throw new AppError("분실물 상태가 매칭 거절 가능한 상태가 아닙니다.", 409);
+  }
+
+  const updatedMatch = await prisma.$transaction(async (tx) => {
+    const result = await tx.match.update({
+      where: {
+        id: Number(matchId),
+      },
+      data: {
+        status: "REJECTED",
+      },
+      select: {
+        id: true,
+        lostItemId: true,
+        foundItemId: true,
+        requesterId: true,
+        receiverId: true,
+        status: true,
+        updatedAt: true,
+      },
+    });
+
+    await tx.lostItem.update({
+      where: {
+        id: match.lostItemId,
+      },
+      data: {
+        status: "REGISTERED",
+      },
+    });
+
+    return result;
+  });
+
+  return {
+    match_id: updatedMatch.id,
+    lost_item_id: updatedMatch.lostItemId,
+    found_item_id: updatedMatch.foundItemId,
+    requester_id: updatedMatch.requesterId,
+    receiver_id: updatedMatch.receiverId,
+    status: updatedMatch.status,
+    updated_at: updatedMatch.updatedAt,
+  };
+}
+
 async function deliverMatch(userId, matchId) {
   const match = await prisma.match.findUnique({
     where: {
@@ -436,5 +505,6 @@ module.exports = {
   getMyMatches,
   getMatchById,
   acceptMatchRequest,
+  rejectMatchRequest,
   deliverMatch,
 };

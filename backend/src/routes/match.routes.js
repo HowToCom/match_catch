@@ -11,6 +11,8 @@ router.get("/", auth, matchController.getMyMatches);
 
 router.patch("/:match_id/accept", auth, matchController.acceptMatchRequest);
 
+router.patch("/:match_id/reject", auth, matchController.rejectMatchRequest);
+
 router.patch("/:match_id/deliver", auth, matchController.deliverMatch);
 
 router.get("/:match_id", auth, matchController.getMatchById);

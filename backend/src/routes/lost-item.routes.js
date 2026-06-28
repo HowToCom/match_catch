@@ -15,6 +15,13 @@ router.post(
 
 router.get("/", auth, lostItemController.getLostItems);
 
+router.patch(
+  "/:lost_item_id",
+  auth,
+  upload.single("image"),
+  lostItemController.updateLostItem
+);
+
 router.get(
   "/:lost_item_id/similar-found-items",
   auth,

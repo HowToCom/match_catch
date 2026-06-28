@@ -61,6 +61,23 @@ async function acceptMatchRequest(req, res, next) {
     next(err);
   }
 }
+async function rejectMatchRequest(req, res, next) {
+  try {
+    const result = await matchService.rejectMatchRequest(
+      req.user.id,
+      req.params.match_id
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "매칭 요청을 거절했습니다.",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function deliverMatch(req, res, next) {
   try {
     const result = await matchService.deliverMatch(
@@ -83,5 +100,6 @@ module.exports = {
   getMyMatches,
   getMatchById,
   acceptMatchRequest,
+  rejectMatchRequest,
   deliverMatch,
 };

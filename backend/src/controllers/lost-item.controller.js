@@ -33,6 +33,25 @@ async function createLostItem(req, res, next) {
   }
 }
 
+async function updateLostItem(req, res, next) {
+  try {
+    const result = await lostItemService.updateLostItem(
+      req.user.id,
+      req.params.lost_item_id,
+      req.body,
+      req.file
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "분실물 수정에 성공했습니다.",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getLostItems(req, res, next) {
   try {
     const result = await lostItemService.getLostItems();
@@ -81,6 +100,7 @@ async function getSimilarFoundItems(req, res, next) {
 
 module.exports = {
   createLostItem,
+  updateLostItem,
   getLostItems,
   getLostItemById,
   getSimilarFoundItems,

@@ -15,6 +15,13 @@ router.post(
 
 router.get("/", auth, foundItemController.getFoundItems);
 
+router.patch(
+  "/:found_item_id",
+  auth,
+  upload.single("image"),
+  foundItemController.updateFoundItem
+);
+
 router.get("/:found_item_id", auth, foundItemController.getFoundItemById);
 
 module.exports = router;
