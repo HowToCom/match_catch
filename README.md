@@ -437,7 +437,6 @@ match_catch
 | [API Specification](docs/API.md)                | 실제 구현 API의 요청/응답 명세                 |
 | [Database Design](docs/DB.md)                   | 데이터베이스 테이블, 관계, 제약 조건               |
 | [Design](docs/DESIGN.md)                        | 시스템 아키텍처 및 주요 설계 의사결정               |
-| [API Test](docs/TEST.md)                        | Postman 기반 기능 검증 시나리오               |
 
 ---
 
